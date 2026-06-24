@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Listaio</string>
+    <string name="add_item_hint">Aggiungi un articolo…</string>
+    <string name="add_item">Aggiungi</string>
+    <string name="existing_matches_header">Già nella lista</string>
+    <string name="already_in_list">«%1$s» è già nella lista</string>
+    <string name="clear_checked">Svuota spuntati</string>
+    <string name="delete">Elimina</string>
+    <string name="drag_handle">Trascina per riordinare</string>
+    <string name="empty_title">La lista è vuota</string>
+    <string name="empty_subtitle">Aggiungi il primo articolo qui sotto.</string>
+    <string name="rename_title">Rinomina articolo</string>
+    <string name="save">Salva</string>
+    <string name="cancel">Annulla</string>
+    <!-- Spostamento nel cestino (reversibile) -->
+    <string name="move_to_trash">Sposta nel cestino</string>
+    <string name="delete_item_title">Spostare nel cestino?</string>
+    <string name="delete_item_message">«%1$s» verrà spostato nel cestino. Potrai ripristinarlo.</string>
+    <string name="clear_checked_title">Spostare gli spuntati nel cestino?</string>
+    <string name="clear_checked_message">Gli articoli spuntati verranno spostati nel cestino. Potrai ripristinarli.</string>
+
+    <!-- Cestino -->
+    <string name="trash_title">Cestino</string>
+    <string name="open_trash">Apri cestino</string>
+    <string name="back">Indietro</string>
+    <string name="trash_empty_title">Il cestino è vuoto</string>
+    <string name="trash_empty_subtitle">Gli articoli rimossi finiscono qui.</string>
+    <string name="select_all">Seleziona tutti</string>
+    <string name="deselect_all">Deseleziona tutti</string>
+    <string name="restore">Ripristina</string>
+    <string name="restore_count">Ripristina (%1$d)</string>
+    <string name="delete_forever">Elimina definitivamente</string>
+    <string name="delete_forever_count">Elimina (%1$d)</string>
+    <string name="delete_forever_title">Eliminare definitivamente?</string>
+    <string name="delete_forever_message_one">«%1$s» verrà eliminato definitivamente. L\'azione non è reversibile.</string>
+    <string name="delete_forever_message_many">%1$d articoli verranno eliminati definitivamente. L\'azione non è reversibile.</string>
+
+    <!-- Onboarding lista condivisa -->
+    <string name="onboarding_subtitle">Lista della spesa condivisa</string>
+    <string name="create_list_title">Crea una nuova lista</string>
+    <string name="create_list_description">Condividi il codice con i tuoi familiari per accedere alla stessa lista su ogni dispositivo.</string>
+    <string name="list_code_label">Codice lista</string>
+    <string name="create_list_button">Crea lista</string>
+    <string name="join_list_title">Unisciti a una lista esistente</string>
+    <string name="join_list_hint">Codice a 6 caratteri</string>
+    <string name="join_list_button">Unisciti</string>
+    <string name="or_divider">oppure</string>
+</resources>
