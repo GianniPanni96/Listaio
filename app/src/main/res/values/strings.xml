@@ -12,6 +12,12 @@
     <string name="empty_subtitle">Aggiungi il primo articolo qui sotto.</string>
     <string name="rename_title">Rinomina articolo</string>
     <string name="save">Salva</string>
+    <!-- Menu a lungo tocco su un articolo -->
+    <string name="menu_move_item">Sposta item</string>
+    <string name="menu_rename">Rinomina</string>
+    <!-- Modalità spostamento -->
+    <string name="move_mode_hint">Sposta «%1$s» sotto l\'articolo che desideri</string>
+    <string name="move_mode_cancel">Annulla</string>
     <string name="cancel">Annulla</string>
     <!-- Spostamento nel cestino (reversibile) -->
     <string name="move_to_trash">Sposta nel cestino</string>

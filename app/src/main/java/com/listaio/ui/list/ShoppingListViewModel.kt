@@ -90,4 +90,32 @@ class ShoppingListViewModel(
 
         viewModelScope.launch { repository.move(moved.id, newOrder) }
     }
+
+    /**
+     * Moves [id] to sit immediately below [targetId] in the displayed list, then persists the
+     * new fractional order between the moved item's new neighbours.
+     */
+    fun moveItemBelow(id: String, targetId: String) {
+        val current = items.value
+        val fromIndex = current.indexOfFirst { it.id == id }
+        val targetIndex = current.indexOfFirst { it.id == targetId }
+        if (fromIndex == -1 || targetIndex == -1 || fromIndex == targetIndex) return
+
+        val reordered = current.toMutableList()
+        val moved = reordered.removeAt(fromIndex)
+        val insertAt = reordered.indexOfFirst { it.id == targetId } + 1
+        reordered.add(insertAt, moved)
+
+        val prev = reordered.getOrNull(insertAt - 1)
+        val next = reordered.getOrNull(insertAt + 1)
+
+        val newOrder = when {
+            prev == null && next == null -> moved.order
+            prev == null -> next!!.order + ORDER_GAP
+            next == null -> prev.order + ORDER_GAP
+            else -> (prev.order + next.order) / 2.0
+        }
+
+        viewModelScope.launch { repository.move(moved.id, newOrder) }
+    }
 }
