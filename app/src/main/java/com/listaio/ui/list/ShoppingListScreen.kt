@@ -3,7 +3,7 @@ package com.listaio.ui.list
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectVerticalDragGestures
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -14,6 +14,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -42,12 +44,9 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Surface
-import androidx.compose.material3.SwipeToDismissBox
-import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -87,6 +86,7 @@ fun ShoppingListScreen(
     var longPressMenu by remember { mutableStateOf<ShoppingItem?>(null) }
     var renameItem by remember { mutableStateOf<ShoppingItem?>(null) }
     var confirmClearChecked by remember { mutableStateOf(false) }
+    var pendingTrashItem by remember { mutableStateOf<ShoppingItem?>(null) }
     var moveSourceId by remember { mutableStateOf<String?>(null) }
     val haptics = LocalHapticFeedback.current
     val lazyListState = rememberLazyListState()
@@ -162,7 +162,6 @@ fun ShoppingListScreen(
                         items = items,
                         lazyListState = lazyListState,
                         onToggle = { it -> viewModel.toggle(it) },
-                        onDelete = { it -> viewModel.moveToTrash(it.id) },
                         onLongPress = { it ->
                             if (moveMode) {
                                 targetTapped(it.id, moveSourceId!!, viewModel)
@@ -178,13 +177,12 @@ fun ShoppingListScreen(
                             .weight(1f)
                             .fillMaxHeight(),
                     )
-                    Spacer(modifier = Modifier.width(6.dp))
+                    Spacer(modifier = Modifier.width(4.dp))
                     ListScrollbar(
                         lazyState = lazyListState,
                         modifier = Modifier
-                            .width(10.dp)
-                            .fillMaxHeight()
-                            .padding(horizontal = 4.dp),
+                            .width(18.dp)
+                            .fillMaxHeight(),
                     )
                 }
             }
@@ -203,10 +201,23 @@ fun ShoppingListScreen(
                 renameItem = item
             },
             onDelete = {
-                viewModel.moveToTrash(item.id)
                 longPressMenu = null
+                pendingTrashItem = item
             },
             onDismiss = { longPressMenu = null },
+        )
+    }
+
+    pendingTrashItem?.let { item ->
+        ConfirmDialog(
+            title = stringResource(R.string.delete_item_title),
+            message = stringResource(R.string.delete_item_message, item.name),
+            confirmLabel = stringResource(R.string.move_to_trash),
+            onConfirm = {
+                viewModel.moveToTrash(item.id)
+                pendingTrashItem = null
+            },
+            onDismiss = { pendingTrashItem = null },
         )
     }
 
@@ -377,7 +388,6 @@ private fun ItemList(
     items: List<ShoppingItem>,
     lazyListState: LazyListState,
     onToggle: (ShoppingItem) -> Unit,
-    onDelete: (ShoppingItem) -> Unit,
     onLongPress: (ShoppingItem) -> Unit,
     onMove: (from: Int, to: Int) -> Unit,
     moveSourceId: String?,
@@ -394,60 +404,27 @@ private fun ItemList(
     ) {
         items(items, key = { it.id }) { item ->
             ReorderableItem(reorderableState, key = item.id) { isDragging ->
-                val dismiss = rememberSwipeToDismissBoxState(
-                    confirmValueChange = { value ->
-                        if (value != SwipeToDismissBoxValue.Settled) {
-                            onDelete(item)
-                        }
-                        false
+                ItemRow(
+                    name = item.name,
+                    checked = item.checked,
+                    isDragging = isDragging,
+                    onToggle = { onToggle(item) },
+                    onLongPress = { onLongPress(item) },
+                    dragHandle = {
+                        Icon(
+                            imageVector = Icons.Filled.DragHandle,
+                            contentDescription = stringResource(R.string.drag_handle),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.draggableHandle(),
+                        )
                     },
-                    // Make the swipe deliberately less reactive: the box only dismisses
-                    // once the finger has travelled at least 50% of the full width.
-                    positionalThreshold = { it * 0.5f },
+                    modifier = Modifier.fillMaxWidth(),
+                    moveModeActive = moveSourceId != null,
+                    isMoveSource = moveSourceId == item.id,
+                    onMoveTarget = { onLongPress(item) },
                 )
-                SwipeToDismissBox(
-                    state = dismiss,
-                    backgroundContent = { DismissBackground() },
-                ) {
-                    ItemRow(
-                        name = item.name,
-                        checked = item.checked,
-                        isDragging = isDragging,
-                        onToggle = { onToggle(item) },
-                        onLongPress = { onLongPress(item) },
-                        dragHandle = {
-                            Icon(
-                                imageVector = Icons.Filled.DragHandle,
-                                contentDescription = stringResource(R.string.drag_handle),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.draggableHandle(),
-                            )
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                        moveModeActive = moveSourceId != null,
-                        isMoveSource = moveSourceId == item.id,
-                        onMoveTarget = { onLongPress(item) },
-                    )
-                }
             }
         }
-    }
-}
-
-@Composable
-private fun DismissBackground() {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.errorContainer),
-        contentAlignment = Alignment.CenterStart,
-    ) {
-        Icon(
-            imageVector = Icons.Filled.DeleteSweep,
-            contentDescription = stringResource(R.string.delete),
-            tint = MaterialTheme.colorScheme.onErrorContainer,
-            modifier = Modifier.padding(start = 20.dp),
-        )
     }
 }
 
@@ -540,33 +517,86 @@ private fun ListScrollbar(
             ),
     ) {
         val trackPx = with(density) { maxHeight.toPx() }.coerceAtLeast(1f)
+        var dragFraction by remember { mutableStateOf<Float?>(null) }
+        val geom = scrollbarGeom(lazyState)
+        val scrollablePx = geom.scrollablePx
+        val thumbH = (trackPx * geom.thumbFraction).coerceAtLeast(32f)
+        val maxOffset = (trackPx - thumbH).coerceAtLeast(0f)
+        val fraction = (dragFraction ?: (geom.currentOffset / scrollablePx)).coerceIn(0f, 1f)
+        val thumbY = fraction * maxOffset
+
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .pointerInput(lazyState, scope, trackPx) {
-                    var lastTarget = -1
-                    detectVerticalDragGestures(
-                        onVerticalDrag = { change, _ ->
-                            val fraction = (change.position.y / trackPx).coerceIn(0f, 1f)
-                            val total = lazyState.layoutInfo.totalItemsCount.coerceAtLeast(1)
-                            val target = (fraction * (total - 1)).toInt().coerceIn(0, total - 1)
-                            if (target != lastTarget) {
-                                lastTarget = target
-                                scope.launch { lazyState.scrollToItem(target) }
+                    var lastTargetPx = 0f
+                    detectDragGestures(
+                        onDragStart = { pos ->
+                            val live = scrollbarGeom(lazyState)
+                            lastTargetPx = live.currentOffset
+                            val liveThumbY = (live.currentOffset / live.scrollablePx) * maxOffset
+                            val y = pos.y
+                            if (y < liveThumbY || y > liveThumbY + thumbH) {
+                                val jumpTarget = (((y - thumbH / 2f) / maxOffset)
+                                    .coerceIn(0f, 1f)) * live.scrollablePx
+                                scope.launch { scrollToPixel(lazyState, jumpTarget) }
+                                dragFraction = (jumpTarget / live.scrollablePx).coerceIn(0f, 1f)
+                                lastTargetPx = jumpTarget
                             }
+                            true
+                        },
+                        onDrag = { change, dragAmount ->
+                            val live = scrollbarGeom(lazyState)
+                            val ratio = if (maxOffset > 0f) live.scrollablePx / maxOffset else 1f
+                            val target = (lastTargetPx + dragAmount.y * ratio)
+                                .coerceIn(0f, live.scrollablePx)
+                            scope.launch { scrollToPixel(lazyState, target) }
+                            dragFraction = (target / live.scrollablePx).coerceIn(0f, 1f)
+                            lastTargetPx = target
                             change.consume()
                         },
+                        onDragEnd = { dragFraction = null },
+                        onDragCancel = { dragFraction = null },
                     )
                 },
-            contentAlignment = Alignment.Center,
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxHeight(0.28f)
-                    .width(6.dp)
-                    .clip(RoundedCornerShape(6.dp))
-                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.55f)),
-            )
-        }
+        )
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .offset(y = with(density) { thumbY.toDp() })
+                .width(12.dp)
+                .height(with(density) { thumbH.toDp() })
+                .clip(RoundedCornerShape(6.dp))
+                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.85f)),
+        )
     }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+private fun scrollbarGeom(state: LazyListState): ScrollbarGeom {
+    val info = state.layoutInfo
+    val viewportPx = (info.viewportEndOffset - info.viewportStartOffset)
+        .toFloat().coerceAtLeast(1f)
+    val unitPx = info.visibleItemsInfo.firstOrNull()?.size?.toFloat()?.coerceAtLeast(1f) ?: viewportPx
+    val contentPx = (unitPx * info.totalItemsCount).coerceAtLeast(viewportPx)
+    val scrollablePx = (contentPx - viewportPx).coerceAtLeast(1f)
+    val firstIndex = info.visibleItemsInfo.firstOrNull()?.index ?: 0
+    val currentOffset = (firstIndex * unitPx + state.firstVisibleItemScrollOffset.toFloat())
+        .coerceIn(0f, scrollablePx)
+    val thumbFraction = (viewportPx / contentPx).coerceIn(0.12f, 1f)
+    return ScrollbarGeom(scrollablePx, currentOffset, thumbFraction)
+}
+
+private data class ScrollbarGeom(
+    val scrollablePx: Float,
+    val currentOffset: Float,
+    val thumbFraction: Float,
+)
+
+private suspend fun scrollToPixel(state: LazyListState, pixel: Float) {
+    val info = state.layoutInfo
+    val unit = info.visibleItemsInfo.firstOrNull()?.size?.toFloat()?.coerceAtLeast(1f) ?: return
+    val index = (pixel / unit).toInt().coerceIn(0, info.totalItemsCount - 1)
+    val offset = (pixel - index * unit).toInt().coerceAtLeast(0)
+    state.scrollToItem(index, offset)
 }
