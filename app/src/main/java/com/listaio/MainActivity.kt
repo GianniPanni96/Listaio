@@ -49,7 +49,7 @@ class MainActivity : ComponentActivity() {
                                 ServiceLocator.provideListRepository(listId!!),
                             ),
                         )
-                        ListaioApp(viewModel = viewModel)
+                        ListaioApp(viewModel = viewModel, listCode = listId!!)
                     }
                 }
             }

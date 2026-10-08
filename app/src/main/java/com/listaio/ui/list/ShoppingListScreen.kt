@@ -30,6 +30,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DeleteSweep
 import androidx.compose.material.icons.filled.DragHandle
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Key
 import androidx.compose.material.icons.filled.MoveToInbox
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Badge
@@ -72,6 +73,7 @@ import kotlinx.coroutines.launch
 import com.listaio.domain.ShoppingItem
 import com.listaio.ui.list.components.AddItemBar
 import com.listaio.ui.list.components.ItemRow
+import com.listaio.ui.list.components.ListCodeDialog
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 
@@ -79,10 +81,12 @@ import sh.calvin.reorderable.rememberReorderableLazyListState
 @Composable
 fun ShoppingListScreen(
     viewModel: ShoppingListViewModel,
+    listCode: String,
     onOpenTrash: () -> Unit,
 ) {
     val items by viewModel.items.collectAsState()
     val trash by viewModel.trash.collectAsState()
+    var showListCode by remember { mutableStateOf(false) }
     var longPressMenu by remember { mutableStateOf<ShoppingItem?>(null) }
     var renameItem by remember { mutableStateOf<ShoppingItem?>(null) }
     var confirmClearChecked by remember { mutableStateOf(false) }
@@ -96,6 +100,12 @@ fun ShoppingListScreen(
             TopAppBar(
                 title = { Text(stringResource(R.string.app_name)) },
                 actions = {
+                    IconButton(onClick = { showListCode = true }) {
+                        Icon(
+                            imageVector = Icons.Filled.Key,
+                            contentDescription = stringResource(R.string.list_code_title),
+                        )
+                    }
                     if (items.any { it.checked }) {
                         IconButton(onClick = { confirmClearChecked = true }) {
                             Icon(
@@ -133,6 +143,9 @@ fun ShoppingListScreen(
             )
         },
     ) { innerPadding ->
+        if (showListCode) {
+            ListCodeDialog(code = listCode, onDismiss = { showListCode = false })
+        }
         if (items.isEmpty()) {
             EmptyState(modifier = Modifier.padding(innerPadding))
         } else {

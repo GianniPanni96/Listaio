@@ -52,4 +52,13 @@
     <string name="join_list_hint">Codice a 6 caratteri</string>
     <string name="join_list_button">Unisciti</string>
     <string name="or_divider">oppure</string>
+
+    <!-- Codice lista (condivisione con familiari e con l'assistente vocale VoiceHome) -->
+    <string name="list_code_title">Codice lista</string>
+    <string name="list_code_description">Inseriscilo su un altro dispositivo per unirti a questa lista, oppure nelle impostazioni di VoiceHome per gestirla a voce.</string>
+    <string name="list_code_copy">Copia</string>
+    <string name="list_code_copied">Codice copiato</string>
+    <string name="list_code_share">Condividi</string>
+    <string name="list_code_share_text">Codice della lista Listaio: %1$s</string>
+    <string name="close">Chiudi</string>
 </resources>

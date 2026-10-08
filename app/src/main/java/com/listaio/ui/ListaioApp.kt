@@ -16,7 +16,7 @@ import com.listaio.ui.trash.TrashScreen
  * deliberately dependency-free (no navigation library) to keep things simple.
  */
 @Composable
-fun ListaioApp(viewModel: ShoppingListViewModel) {
+fun ListaioApp(viewModel: ShoppingListViewModel, listCode: String) {
     var showTrash by rememberSaveable { mutableStateOf(false) }
 
     if (showTrash) {
@@ -31,6 +31,7 @@ fun ListaioApp(viewModel: ShoppingListViewModel) {
     } else {
         ShoppingListScreen(
             viewModel = viewModel,
+            listCode = listCode,
             onOpenTrash = { showTrash = true },
         )
     }
